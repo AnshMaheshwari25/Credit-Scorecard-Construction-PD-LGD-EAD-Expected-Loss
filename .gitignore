@@ -1,13 +1,20 @@
-# data and fitted models are not committed
+# Local borrower-level data (do not commit source datasets)
 data/raw/*.csv
 data/raw/*.zip
-models/*.joblib
 
-# python / jupyter
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
-.pytest_cache/
+# Generated reports and fitted models
+results/
+models/
+*.joblib
+
+# Python environments and cache
 .venv/
 venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
 .DS_Store
+.env

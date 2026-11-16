@@ -109,6 +109,12 @@ def select_features(woe: pd.DataFrame, y, iv: pd.Series, sel_cfg: dict, C: float
     label = "IV" if oof_iv is None else "out-of-fold IV"
     rows = []
     keep = rank[rank >= sel_cfg["iv_min"]].index.tolist()
+    if not keep:
+        best = float(rank.max()) if len(rank) else float("nan")
+        raise ValueError(
+            f"No features passed the {label} threshold (iv_min={sel_cfg['iv_min']}; best={best:.4f}). "
+            "Review the input data, target definition or selection threshold."
+        )
     rows += [("1. IV screen", f, f"{label} {rank[f]:.4f} < {sel_cfg['iv_min']} (in-sample IV {iv[f]:.4f})")
              for f in rank.index if f not in keep]
     flagged = [f for f in keep if iv[f] > sel_cfg["iv_suspicious"]]

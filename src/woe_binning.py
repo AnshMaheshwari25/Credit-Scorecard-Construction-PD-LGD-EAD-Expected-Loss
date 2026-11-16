@@ -59,9 +59,18 @@ class WoEBinner(BaseEstimator, TransformerMixin):
     # ------------------------------------------------------------------------------------------------------
     def fit(self, X, y):
         X = pd.DataFrame(X).reset_index(drop=True)
-        y = np.asarray(y).astype(int)
-        if len(X) != len(y):
-            raise ValueError("X and y have different lengths")
+        y = np.asarray(y)
+        if y.ndim != 1 or len(X) != len(y):
+            raise ValueError("X and y must have the same number of rows and y must be one-dimensional")
+        if X.empty or X.shape[1] == 0:
+            raise ValueError("WoEBinner requires at least one training row and one feature")
+        if pd.isna(y).any() or not np.isin(y, [0, 1]).all():
+            raise ValueError("WoEBinner target y must contain only non-missing 0/1 labels")
+        y = y.astype(int)
+        if np.unique(y).size != 2:
+            raise ValueError("WoEBinner requires both good (0) and bad (1) observations")
+        if self.max_bins < 2 or not 0 < self.min_bin_pct < 1 or self.smoothing <= 0:
+            raise ValueError("Invalid WoEBinner settings: max_bins >= 2, 0 < min_bin_pct < 1 and smoothing > 0 are required")
         self.columns_ = list(X.columns)
         self.n_bad_ = int(y.sum())
         self.n_good_ = int(len(y) - y.sum())

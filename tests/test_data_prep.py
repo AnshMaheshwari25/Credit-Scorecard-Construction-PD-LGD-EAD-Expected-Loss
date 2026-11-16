@@ -32,6 +32,32 @@ def test_feature_sets_have_no_post_origination_leakage():
     assert not set(dp.POLICY_EXCLUDED) & set(fs["with_lc_grade"])
 
 
+def test_load_raw_fills_optional_columns(tmp_path):
+    """Older vintages may omit secondary fields; the loader creates explicit missing columns."""
+    raw = {
+        "loan_status": ["Fully Paid"],
+        "issue_d": ["Dec-15"],
+        "term": [" 36 months"],
+        "loan_amnt": [1000],
+        "funded_amnt": [1000],
+        "int_rate": [10.0],
+        "grade": ["B"],
+        "annual_inc": [50000],
+        "dti": [10.0],
+        "earliest_cr_line": ["Jan-00"],
+        "total_rec_prncp": [100.0],
+        "recoveries": [0.0],
+        "collection_recovery_fee": [0.0],
+        "last_pymnt_d": ["Jan-16"],
+    }
+    path = tmp_path / "minimal_loans.csv"
+    pd.DataFrame(raw).to_csv(path, index=False)
+
+    loaded = dp.load_raw(path)
+    assert "tot_cur_bal" in loaded and loaded["tot_cur_bal"].isna().all()
+    assert "application_type" in loaded and loaded["application_type"].isna().all()
+
+
 @pytest.fixture(scope="module")
 def prepared():
     from make_synthetic_sample import generate

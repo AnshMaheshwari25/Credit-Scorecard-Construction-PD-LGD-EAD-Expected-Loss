@@ -2,9 +2,9 @@
 
 Definitions (for a charged-off loan)
 ------------------------------------
-* ``EAD_at_default = funded_amnt - total_rec_prncp``   principal still outstanding at charge-off
-* ``CCF = EAD_at_default / funded_amnt``                exposure factor in [0, 1]. A term loan has no undrawn
-  commitment, so this is the share of the original principal not yet repaid when the borrower defaults.
+* ``EAD_proxy = funded_amnt - total_rec_prncp``       snapshot-based estimate of principal still outstanding
+* ``CCF_proxy = EAD_proxy / funded_amnt``             exposure factor in [0, 1] used by this project. The source
+  snapshot does not provide a clean balance-at-default field, so this is not an observed contractual EAD.
 * ``recovery_rate = (recoveries - collection_recovery_fee) / EAD_at_default``  clipped to [0, 1]
 * ``LGD = 1 - recovery_rate``
 

@@ -6,7 +6,11 @@ import pandas as pd
 
 
 def compute_expected_loss(df: pd.DataFrame, pd_hat, lgd_hat, ccf_hat) -> pd.DataFrame:
-    """Loan-level EL. ``EAD = CCF x funded_amnt`` (exposure at default of a term loan: principal not yet repaid)."""
+    """Loan-level EL. EAD is a snapshot-derived proxy: CCF proxy x original funded amount.
+
+    The source vintage does not expose the exact outstanding principal at the contractual default date.
+    Treat outputs as an educational modelling proxy, not accounting or regulatory ECL.
+    """
     out = pd.DataFrame(index=df.index)
     out["funded_amnt"] = df["funded_amnt"].to_numpy(dtype=float)
     out["pd"] = np.asarray(pd_hat, dtype=float)

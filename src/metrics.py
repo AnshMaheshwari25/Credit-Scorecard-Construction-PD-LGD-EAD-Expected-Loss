@@ -21,8 +21,17 @@ def ks_statistic(y, p) -> float:
 
 
 def evaluate_binary(y, p) -> dict:
-    y = np.asarray(y).astype(int)
+    y = np.asarray(y)
     p = np.asarray(p, dtype=float)
+    if y.ndim != 1 or p.ndim != 1 or len(y) != len(p) or len(y) == 0:
+        raise ValueError("y and p must be non-empty one-dimensional arrays of equal length")
+    if pd.isna(y).any() or not np.isin(y, [0, 1]).all():
+        raise ValueError("y must contain only non-missing 0/1 labels")
+    if not np.isfinite(p).all() or np.any((p < 0) | (p > 1)):
+        raise ValueError("p must contain finite probabilities between 0 and 1")
+    y = y.astype(int)
+    if np.unique(y).size != 2:
+        raise ValueError("Binary evaluation requires both target classes")
     auc = roc_auc_score(y, p)
     return {
         "auroc": float(auc), "gini": float(2 * auc - 1), "ks": ks_statistic(y, p),

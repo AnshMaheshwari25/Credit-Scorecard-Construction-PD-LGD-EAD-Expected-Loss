@@ -1,17 +1,7 @@
-# Core (tested with Python 3.12, pandas 3.0, numpy 2.5, scikit-learn 1.9, scipy 1.18, matplotlib 3.11)
-# The code avoids deprecated APIs and is intended for pandas>=1.5 / scikit-learn>=1.2 (older versions not tested).
 numpy>=1.23
 pandas>=1.5
 scipy>=1.9
 scikit-learn>=1.2
 matplotlib>=3.6
-pyyaml>=6.0
+PyYAML>=6.0
 joblib>=1.2
-
-# Notebook
-jupyter
-ipykernel
-
-# Optional: unit tests (statsmodels is only used to cross-check the p-value maths)
-pytest
-statsmodels

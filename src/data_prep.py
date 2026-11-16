@@ -150,6 +150,13 @@ def load_raw(path, nrows: int | None = None) -> pd.DataFrame:
     missing = [c for c in REQUIRED if c not in df.columns]
     if missing:
         raise ValueError(f"Required columns missing from {path}: {missing}")
+
+    # Some vintages omit secondary LendingClub fields. Add them as missing so the
+    # modelling pipeline fails only on genuinely required target/date fields, not
+    # with an obscure KeyError several steps downstream.
+    optional = set(NUMERIC_RAW + CATEGORICAL_RAW + OTHER_ORIGINATION_RAW + POST_ORIGINATION_RAW)
+    for col in optional.difference(df.columns):
+        df[col] = np.nan
     return df
 
 
@@ -256,6 +263,11 @@ def split_development_sample(df: pd.DataFrame, cfg: dict) -> tuple[pd.DataFrame,
     """Stratified train / test split of the development sample (stratified on the bad flag)."""
     scfg = cfg["sample"]
     dev = df[df["in_dev_sample"]]
+    if dev.empty:
+        raise ValueError("The development sample is empty. Check loan statuses and min_months_on_book.")
+    class_counts = dev["bad"].astype(int).value_counts()
+    if len(class_counts) != 2 or class_counts.min() < 2:
+        raise ValueError("The development sample needs at least two good and two bad loans for a stratified split.")
     train, test = train_test_split(dev, test_size=scfg["test_size"], random_state=scfg["random_state"],
                                    stratify=dev["bad"].astype(int))
     return train.copy(), test.copy()
