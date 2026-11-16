@@ -1,0 +1,63 @@
+# ---------------------------------------------------------------------------------------------
+# Central configuration for the credit-risk pipeline (PD scorecard, LGD, EAD, Expected Loss)
+# ---------------------------------------------------------------------------------------------
+data:
+  # first existing path wins; the env var CREDIT_RISK_DATA overrides all of these
+  candidate_paths:
+    - data/raw/loan_data_2015.csv
+    - ../input/loan-data-2015/loan_data_2015.csv
+    - /kaggle/input/loan-data-2015/loan_data_2015.csv
+    - data/raw/loan_data_2007_2014.csv
+
+sample:
+  snapshot_date: null          # null -> inferred as the latest last_pymnt_d / last_credit_pull_d in the file
+  min_months_on_book: 6        # development sample keeps loans observed for >= N months (see README: right-censoring)
+  exclude_indeterminate: true  # drop 'In Grace Period', 'Late (16-30 days)', 'Issued' from model fitting
+  test_size: 0.30
+  random_state: 42
+
+woe:
+  max_bins: 6                  # max bins per feature (numeric: tree leaves, categorical: level groups)
+  min_bin_pct: 0.05            # each bin must hold >= 5% of the training sample
+  min_level_pct: 0.01          # categorical levels rarer than 1% are pooled into 'OTHER'
+  min_missing_count: 100       # a 'Missing' bin with fewer rows gets neutral WoE (0)
+
+selection:
+  oof_iv_folds: 3              # IV screen uses out-of-fold IV (0 = use in-sample IV)
+  iv_min: 0.02                 # drop features whose (out-of-fold) IV is below this
+  iv_suspicious: 0.50          # flag (not drop) implausibly strong features: often leakage
+  corr_max: 0.70               # max |correlation| between WoE features
+  p_max: 0.05                  # backward elimination significance level
+  vif_max: 5.0
+
+model:
+  primary: standalone          # 'standalone' (no LendingClub grade / rate) or 'with_lc_grade'
+  C: 1000000.0                 # ~unpenalised logistic regression (classical scorecard practice)
+  cv_splits: 5
+  cv_repeats: 1
+  bootstrap_reps: 200
+
+scorecard:
+  base_score: 600              # score at base_odds
+  base_odds: 50                # good:bad odds at base_score (50:1 -> PD ~ 1.96%)
+  pdo: 20                      # points to double the good:bad odds
+
+benchmark:
+  hgb:
+    max_iter: 300
+    learning_rate: 0.05
+    max_leaf_nodes: 15
+    min_samples_leaf: 200
+    l2_regularization: 1.0
+
+lgd_ead:
+  min_ead: 1.0                 # ignore charged-off loans with (almost) no exposure at default
+  cv_splits: 5
+
+expected_loss:
+  pd_multipliers: [1.0, 1.25, 1.5, 2.0]
+  lgd_add_pp: [0.0, 0.05, 0.10, 0.20]
+
+output:
+  results_dir: results
+  models_dir: models
