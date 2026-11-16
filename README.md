@@ -103,26 +103,6 @@ Copy these from `results/summary.md` after a run on the real file. Nothing below
 | LGD / EAD models deployed (vs naive mean) | _ |
 | Window expected loss, % of funded amount (model vs loss proxy) | _ % / _ % |
 
-## Resume bullets
-
-Choose one version. Replace `[ ]` with your own run's numbers; do not quote a figure you did not produce.
-
-* Built an end-to-end credit-risk framework on [N] Lending Club loans in Python (scikit-learn): a WoE logistic-regression **PD scorecard** (AUROC [x], KS [x]), a two-stage **LGD** model and a CCF-based **EAD** model, combined into portfolio **expected loss** (EL = PD x LGD x EAD).
-* Developed a custom scikit-learn **WoE/IV binning transformer** (monotone, tree-based) with out-of-fold IV screening to remove selection bias; validated with bootstrap CIs, repeated CV, calibration deciles and PSI/CSI stability monitoring.
-* Ran a **leakage audit** showing that post-origination payment fields inflate AUROC from [x] to [y]; restricted the scorecard to origination-time predictors and scaled it to a 600-point / PDO-20 score with reason codes and a cut-off strategy.
-* Modelled recoveries with a **hurdle (two-stage) LGD** model and a model-vs-naive governance check; stress-tested EL under PD multipliers and LGD shocks and back-tested by risk band.
-
-Shorter version (no figures): *Built a PD/LGD/EAD credit-risk model suite with a WoE logistic-regression scorecard, leakage audit, calibration/stability validation and expected-loss stress testing (Python, scikit-learn).*
-
-## Talking points for interviews
-
-* **Why WoE + logistic regression?** Transparent, monotone, handles missing values and outliers, easy to explain and to audit; the boosting benchmark shows how much (or little) signal this gives up.
-* **How do you know it is not leaking?** Predictors are origination-only, and the audit shows what the post-origination fields would have done to the AUROC.
-* **Why no `class_weight='balanced'`?** PD feeds EL, so it must be a calibrated probability; re-weighting shifts the probabilities.
-* **What does PDO mean?** Points to double the odds: +PDO points = 2x the good:bad odds; the tests check this identity.
-* **Why a hurdle LGD?** Recoveries are zero-inflated and bounded; a single linear model mis-specifies both features.
-* **What are the limits?** See below: the PD is a window PD, LGD is biased upwards by incomplete workouts, accepted loans only, one vintage.
-
 ## Limitations and extensions
 
 * **Window PD, not lifetime PD.** Loans in the 2015 file have at most ~12 months of history; EL is a window EL (conceptually the building block of an IFRS 9 12-month ECL, undiscounted), not a lifetime loss. Extension: discrete-time hazard / vintage models on a more mature file.
